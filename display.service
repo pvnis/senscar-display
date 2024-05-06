@@ -1,0 +1,17 @@
+[Unit]
+Description=Display for SENS Car Demo
+
+[Service]
+Type=exec
+User=sens
+
+ExecStart=/bin/sh -c "python main.py"
+WorkingDirectory=/home/sens/PROJECTS/pidisplay
+Restart=always
+
+
+[Install]
+# Require wwan0 to be enabled, otherwise don't start
+Wants=sys-subsystem-net-devices-wwan0.device
+# Wait for the wwan0 interface to come up
+After=sys-subsystem-net-devices-wwan0.device
