@@ -73,14 +73,13 @@ class Display(object):
         self.enable_stats()
         
     def _run_display_stats(self):
-        Charge = False
+        charging = False
         while self.stats_enabled:
                 
+            # Prepare printout
             self.draw.rectangle((0, 0, self.image.width, self.image.height), outline=0, fill=0)
             top = -2
-            
             self.draw.text((20, top), "=== SENS Car ===", font=self.font, fill=255)
-            
             
             # Get states
             connected = self.stats.get_connection_state()
@@ -95,15 +94,15 @@ class Display(object):
             if(p < 0):p = 0
             if(current < 0):current = 0
             if(current > 30):
-                Charge = not Charge
+                charging = not charging
             else:
-                Charge = False
+                charging = False
 
-            # if(Charge == False):
-            #     self.draw.text((600, -2), ' ', font=self.font, fill=255)
-            # else:
-            #     self.draw.text((120, -2), '*', font=self.font, fill=255)
-
+            # Debug print
+            # print("Connected:", connected)
+            # print("Signal Strength:", signal)
+            # print("IP:", ip)
+            # print("CONNECTION:", modem_state)
             
             # CASE IP & CONN
             
@@ -119,22 +118,16 @@ class Display(object):
                 # set stats fields
                 top = 22
                 
-
-                # Debug print
-                print("Connected:", connected)
-                print("Signal Strength:", signal)
-                print("IP:", ip)
-                print("CONNECTION:", modem_state)
-                
                 entries = [ip, "", modem_state, ""]
                 for i, entry in enumerate(entries):
                     self.draw.text((i * offset + 4, top), entry, font=self.font, fill=255)
 
-
+            #
             # CASE SIG & MODEM
+            #
             
             if self.curr_show % 3 == 1:
-                print("SHOWING SIGNAL AND MODEM")
+                # print("SHOWING SIGNAL AND INTERFACE")
                 # # set stats headers
                 top = 10
                 offset = 4 * 8
@@ -147,7 +140,9 @@ class Display(object):
                 for i, entry in enumerate(entries):
                     self.draw.text((i * offset + 4, top), entry, font=self.font, fill=255)            
 
-            # CASE BATTERY & INTERFACE
+            #
+            # CASE BATTERY & MODEM STATE
+            #
 
             if self.curr_show % 3 == 2:
                 # # set stats headers
@@ -156,8 +151,13 @@ class Display(object):
                 headers = ['BATTERY', '', 'MODEM', '']
                 for i, header in enumerate(headers):
                     self.draw.text((i * offset + 4, top), header, font=self.font, fill=255)
-
+                
                 voltage = f'{bus_voltage:.2f}V {(current/1000):.2f}A'
+
+                if charging:
+                   voltage += " (*)" 
+                else:
+                   voltage += "    "
                 
                 top = 22
                 entries = [voltage, "", modem_state, ""]
@@ -169,7 +169,8 @@ class Display(object):
             self.display.display()
             time.sleep(self.stats_interval)
             self.curr_show = (self.curr_show + 1) % 3
-            print("Current show:", self.curr_show)
+
+            # print("Current show:", self.curr_show)
             
     def enable_stats(self):
         # start stats display thread
@@ -201,7 +202,3 @@ class Display(object):
         
 
 serverDisp = Display()
-
-# if __name__ == "__main__":
-#     # Create an instance of the display
-    
