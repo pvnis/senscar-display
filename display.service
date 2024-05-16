@@ -4,14 +4,19 @@ Description=Display for SENS Car Demo
 [Service]
 Type=exec
 User=sens
+Group=sens
 
-ExecStart=/bin/sh -c "python main.py"
-WorkingDirectory=/home/sens/PROJECTS/pidisplay
+StartLimitBurst=50
+StartLimitInterval=600
+# ExecStartPre=/bin/bash -c 'while [ $(ip -4 a | grep wlan0 | wc -l) -eq 0 ]; do echo "Found $(ip -4 a | grep wlan0 | wc -l) entries" && sleep 5; done'
+ExecStart=bash -c "/home/sens/.pyenv/shims/python /home/sens/PROJECTS/pi-display/src/main.py"
+# WorkingDirectory=/home/sens/PROJECTS/pi-display
 Restart=always
 
-
 [Install]
-# Require wwan0 to be enabled, otherwise don't start
-Wants=sys-subsystem-net-devices-wwan0.device
-# Wait for the wwan0 interface to come up
-After=sys-subsystem-net-devices-wwan0.device
+WantedBy=default.target
+# RequiredBy=network.target
+# # Require wwan0 to be enabled, otherwise don't start
+# Wants=sys-subsystem-net-devices-wwan0.device
+# # Wait for the wwan0 interface to come up
+# After=sys-subsystem-net-devices-wwan0.device

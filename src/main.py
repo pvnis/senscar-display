@@ -37,19 +37,7 @@ class Display(object):
         # Connect to the Voltage sensor
         self.ina = ina219.INA219(addr=0x42)
 
-        # Get statistics instance
-        # Get instance of interface that we query
-        interface = ""
-        
-        while not ("ww" in interface or "enx" in interface):
-            cmd_string = "ip -4 a | grep -e 'ww' -e 'enx' | head -n1 | awk '{ print $2 }' | sed 's/://g'"
-            interface  = subprocess.check_output(cmd_string, shell=True).decode('ascii').strip()
-            print("No WWAN interface found, tying again in 5s...")
-            time.sleep(5)
-            print(interface)
-        
-        print("Got interface:", interface)
-        self.stats = Statistics(interface)
+
         
         # Connecto to the display
         self.display = Adafruit_SSD1306.SSD1306_128_32(rst=None, i2c_bus=1, gpio=1) 
@@ -66,7 +54,28 @@ class Display(object):
         self.stats_enabled = False
         self.stats_thread = None
         self.stats_interval = 5.0
-
+        
+        # Get statistics instance
+        # Get instance of interface that we query
+        interface = ""
+        tries = 0 
+        while not ("ww" in interface or "enx" in interface):
+            cmd_string = "ip -4 a | grep -e 'ww' -e 'enx' | head -n1 | awk '{ print $2 }' | sed 's/://g'"
+            interface  = subprocess.check_output(cmd_string, shell=True).decode('ascii').strip()
+            
+            self.draw.rectangle((0, 0, self.image.width, self.image.height), outline=0, fill=0)
+            top = -2
+            self.draw.text((20, top), "=== INIT Car ===", font=self.font, fill=255)
+            self.draw.text((1, 10), "No WWAN found", font=self.font, fill=255)
+            self.draw.text((1, 22), f"Got: {interface} Tries: {tries}", font=self.font, fill=255)
+            self.display.image(self.image)
+            self.display.display()
+            print(f"No WWAN interface found, (got : {interface}) retrying...")
+            tries+=1
+            time.sleep(5)
+        
+        print("Got interface:", interface)
+        self.stats = Statistics(interface)
         self.curr_show = 1
 
         # Start thread to measure things
